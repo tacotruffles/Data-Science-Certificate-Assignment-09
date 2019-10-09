@@ -5,7 +5,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# modeling install.packagesc(('caret', 'ISLR', 'ROCR'))
+# modeling 
+#install.packages(c('caret', 'ISLR', 'ROCR'))
 
 library('tidyverse')
 library('caret')
@@ -191,7 +192,7 @@ How can we visualize the results?
 dat_model_log %>%
   ggplot(aes(x = balance)) + 
   geom_point(aes(y = default)) + 
-  geom_line(aes(y = logistic_reg))
+  geom_line(aes(y = logistic_reg), color='blue')
 ```
 
 ```{r}
@@ -206,7 +207,7 @@ dat_model_log = dat %>%
 dat_model_log %>%
   ggplot(aes(x = balance)) + 
   geom_point(aes(y = default)) + 
-  geom_line(aes(y = logistic_reg))
+  geom_line(aes(y = logistic_reg), color="red")
 ```
 
 
@@ -244,7 +245,7 @@ summary(model_log)
 In order to look at results, we'll use the fitted values rather than doing it all by hand. The `predict()` function is very handy as well as `prediction()`
 
 ```{r}
-predictions = predict(model_log, data = dat)
+predictions = predict(model_log, data = dat, type="response")
 head(predictions)
 ```
 
@@ -295,7 +296,7 @@ summary(model_log)
 
 ```{r}
 probability_threshold = 0.5
-predictions = predict(model_log, data = dat)
+predictions = predict(model_log, data = dat, type="response")
 preds = as.factor(predictions > probability_threshold)
 actuals = as.factor(as.logical(dat$default))
 
@@ -327,7 +328,11 @@ dat_train = reg_dat %>%
   sample_n(9000, replace = FALSE)
 
 dat_test = reg_dat %>%
-  anti_join(dat_train, by = 'id')
+  anti_join(dat_train, by = 'id') 
+
+# remove non-rlated columns
+dat_train = dat_train %>% select(-id)
+dat_test  = dat_test %>% select(-id)
 ```
 
 
@@ -341,6 +346,7 @@ head(dat_test)
 
 
 ```{r}
+# Model on Training data = dat_train
 model_log = glm(default ~ ., family = 'binomial', data = dat_train)
 
 probability_threshold = 0.5

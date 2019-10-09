@@ -15,6 +15,7 @@ dat = raw_dat %>%
 
 You have all of the other information listed in the `dat` variable. Assume the data is accurate and clean.
 ```{r}
+?ISLR::Auto
 head(dat)
 ```
 
@@ -31,9 +32,60 @@ Show any work leading up to your decision. Please describe the following:
   - What issues might be present that you haven't accounted for
   
 ```{r}
+nrow(dat)
+```
+
+```{r}
+summary(dat)
+```
+
+```{r}
+## Split our data into testing/training sets
+dat_full <- dat %>%
+  mutate(
+    id = row_number(), # Add unique ids to each row 
+    year = as.double(if_else(year <= 77, 1, 0)) # convert year to binomial factors year <= 77
+    ) %>%
+  select(id, year, everything()) # move the id column to first position
+
+set.seed(48570) # training data is randomized!
+dat_train = dat_full %>%
+  sample_n(275, replace = FALSE) # 70% of data for TRAINING MODEL
+
+dat_test <- dat_full %>%
+  anti_join(dat_train, by = 'id') # 30% of data for TESTING MODEL
+
+# remove non-rlated columns
+dat_train = dat_train %>% select(-id) 
+dat_test  = dat_test %>% select(-id)
 
 ```
 
+```{r}
+# Check if TRAINING data is randomized and has non-related columns removed
+head(dat_train)
+```
 
+```{r}
+# Check if TEST data has non-related columns removed
+head(dat_test)
+```
 
+```{r}
+# Model training data
+model_log = glm(year ~ ., family = 'binomial', data = dat_train)
+summary(model_log)
+
+```
+
+```{r}
+# Run Test
+probability_threshold = 0.35 # To reduce false positives
+
+predictions = predict(model_log, newdata = dat_test)
+preds = as.factor(predictions > probability_threshold)
+actuals = as.factor(as.logical(dat_test$year))
+
+confusionMatrix(preds, actuals)
+```
 
